@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "DebugHelper.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -67,6 +68,8 @@ void AClimbingSystemCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	CS_Debug::Print(FString::Printf(TEXT("'%s' has been initialized!"), *GetName()), FColor::Green);
 }
 
 //////////////////////////////////////////////////////////////////////////
