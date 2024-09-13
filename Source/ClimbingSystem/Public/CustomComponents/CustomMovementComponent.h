@@ -14,7 +14,13 @@ class CLIMBINGSYSTEM_API UCustomMovementComponent : public UCharacterMovementCom
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 private:
+	// 跟踪可攀爬表面
+	void TraceClimbableSurface() const;
+
 	// 胶囊体射线检测
 	TArray<FHitResult> DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug) const;
 
