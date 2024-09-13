@@ -103,8 +103,8 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	const FVector Adjusted = Velocity * DeltaTime;
 	FHitResult Hit(1.f);
 
-	// 处理攀爬旋转
-	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);
+	// 处理攀爬旋转，使角色面向攀爬表面
+	SafeMoveUpdatedComponent(Adjusted, GetClimbingRotation(DeltaTime), true, Hit);
 
 	if (Hit.Time < 1.f)
 	{
@@ -119,6 +119,7 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	}
 
 	// 将角色移动固定到攀爬表面
+	SnapMovementToClimbableSurface(DeltaTime);
 	
 }
 
@@ -144,6 +145,42 @@ void UCustomMovementComponent::ProcessClimbableSurfaceInfo()
 	UKismetSystemLibrary::DrawDebugSphere(this, CurrentClimbableSurfaceLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
 	UKismetSystemLibrary::DrawDebugArrow(this, CurrentClimbableSurfaceLocation, CurrentClimbableSurfaceLocation + CurrentClimbableSurfaceNormal * 100.f, 10.f, FColor::Green, 0.1f, 1.0f);
 
+}
+
+FQuat UCustomMovementComponent::GetClimbingRotation(float DeltaTime) const
+{
+	// 计算攀爬旋转
+	const FQuat CurrentRotation = UpdatedComponent->GetComponentQuat();		// 当前旋转
+
+	// 如果我们想使用根运动来驱动旋转，或者根运动覆盖速度
+	if (HasRootMotionSources() || CurrentRootMotion.HasOverrideVelocity())
+	{
+		// 如果有根运动源或根运动覆盖速度
+		return CurrentRotation;
+	}
+
+	const FQuat TargetRotation = FRotationMatrix::MakeFromX(-CurrentClimbableSurfaceNormal).ToQuat();	// 目标旋转，根据攀爬表面法线计算，使角色面向攀爬表面（所以要对法线取反）
+
+	// 通过插值计算旋转，使角色平滑旋转，避免瞬间旋转
+	return FQuat::Slerp(CurrentRotation, TargetRotation, DeltaTime * 10.f);
+}
+
+void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
+{
+	// 将角色移动固定到攀爬表面
+	const FVector ComponentForward = UpdatedComponent->GetForwardVector();
+	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+
+	// 计算角色面向攀爬表面的投影向量(投影到攀爬表面)
+	const FVector ProjectedCharacterToSurface = (CurrentClimbableSurfaceLocation - ComponentLocation).ProjectOnTo(ComponentForward);
+
+	// 计算角色面向攀爬表面的投影向量(投影到角色面向)
+	const FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
+
+	UpdatedComponent->MoveComponent(
+		SnapVector*DeltaTime*MaxClimbSpeed,
+		UpdatedComponent->GetComponentQuat(),
+		true);
 }
 
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -182,6 +219,26 @@ void UCustomMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 	}
 
 	Super::PhysCustom(DeltaTime, Iterations);
+}
+
+float UCustomMovementComponent::GetMaxSpeed() const
+{
+	if (IsClimbing())
+	{
+		// 如果处于攀爬模式，返回攀爬速度
+		return MaxClimbSpeed;
+	}
+	return Super::GetMaxSpeed();
+}
+
+float UCustomMovementComponent::GetMaxAcceleration() const
+{
+	if (IsClimbing())
+	{
+		// 如果处于攀爬模式，返回攀爬加速度
+		return MaxClimbAcceleration;
+	}
+	return Super::GetMaxAcceleration();
 }
 
 bool UCustomMovementComponent::TraceClimbableSurface()

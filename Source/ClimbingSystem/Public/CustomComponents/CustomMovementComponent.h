@@ -41,6 +41,12 @@ protected:
 	// 重写物理计算
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
+	// 重写获取最大速度
+	virtual float GetMaxSpeed() const override;
+
+	// 重写获取最大加速度
+	virtual float GetMaxAcceleration() const override;
+
 private:
 	void StartClimbing();
 
@@ -74,7 +80,19 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	float MaxBrakingDeceleration = 400.f;	// 最大减速度
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float MaxClimbSpeed = 200.f;	// 最大攀爬速度
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float MaxClimbAcceleration = 500.f;	// 最大攀爬加速度
+
 	void ProcessClimbableSurfaceInfo();
+
+	// 获取攀爬旋转
+	FQuat GetClimbingRotation(float DeltaTime) const;
+
+	// 将移动位置对齐到可攀爬表面
+	void SnapMovementToClimbableSurface(float DeltaTime);
 
 	FVector CurrentClimbableSurfaceLocation;	// 当前可攀爬表面的位置
 	FVector CurrentClimbableSurfaceNormal;		// 当前可攀爬表面的法线
