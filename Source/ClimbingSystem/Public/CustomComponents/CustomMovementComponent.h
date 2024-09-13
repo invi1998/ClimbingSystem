@@ -46,6 +46,8 @@ private:
 
 	void StopClimbing();
 
+	void PhysClimb(float DeltaTime, int32 Iterations);
+
 	// 跟踪可攀爬表面
 	bool TraceClimbableSurface();
 
@@ -68,5 +70,8 @@ private:
 	TArray<TEnumAsByte<EObjectTypeQuery>> ClimbTraceObjectTypes;	// 胶囊体射线检测对象类型
 
 	TArray<FHitResult> ClimbableSurfaceTraceHits;	// 可攀爬表面的射线检测结果
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float MaxBrakingDeceleration = 400.f;	// 最大减速度
 	
 };

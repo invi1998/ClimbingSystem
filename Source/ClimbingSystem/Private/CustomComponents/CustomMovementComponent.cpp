@@ -74,6 +74,82 @@ void UCustomMovementComponent::StopClimbing()
 	SetMovementMode(MOVE_Falling);
 }
 
+void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
+{
+	if (DeltaTime < MIN_TICK_TIME)
+	{
+		return;
+	}
+
+	// 处理攀爬表面
+	// 获取攀爬表面法线
+	const FVector ClimbSurfaceNormal = ClimbableSurfaceTraceHits[0].ImpactNormal;
+
+	// 获取攀爬表面法线与角色前方向的夹角
+	const float DotResult = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetForwardVector());
+
+	// 获取攀爬表面法线与角色上方向的夹角
+	const float DotResultUp = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetUpVector());
+
+	// 获取攀爬表面法线与角色右方向的夹角
+	const float DotResultRight = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetRightVector());
+
+	// 获取攀爬表面法线与角色后方向的夹角
+	const float DotResultBack = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetForwardVector());
+
+	// 获取攀爬表面法线与角色下方向的夹角
+	const float DotResultDown = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetUpVector());
+
+	// 获取攀爬表面法线与角色左方向的夹角
+	const float DotResultLeft = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetRightVector());
+
+	// 获取攀爬表面法线与角色前方向的夹角的绝对值
+	const float AbsDotResult = FMath::Abs(DotResult);
+
+	// 获取攀爬表面法线与角色上方向的夹角的绝对值
+	const float AbsDotResultUp = FMath::Abs(DotResultUp);
+
+	// 获取攀爬表面法线与角色右方向的夹角的绝对值
+	const float AbsDotResultRight = FMath::Abs(DotResultRight);
+
+	// 获取攀爬表面法线与角色后方向的夹角的绝对值
+	const float AbsDotResultBack = FMath::Abs(DotResultBack);
+
+	// 获取攀爬表面法线与角色下方向的夹角的绝对值
+
+	RestorePreAdditiveRootMotionVelocity();
+
+	if (!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{
+		// 计算速度（传入的参数分别为：DeltaTime，水平速度，是否应用摩擦力，最大减速度）
+		CalcVelocity(DeltaTime, 0.f, true, MaxBrakingDeceleration);
+	}
+
+	ApplyRootMotionToVelocity(DeltaTime);
+
+	FVector OldLocation = UpdatedComponent->GetComponentLocation();
+	const FVector Adjusted = Velocity * DeltaTime;
+	FHitResult Hit(1.f);
+
+	// 处理攀爬旋转
+	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);
+
+	if (Hit.Time < 1.f)
+	{
+		//adjust and try again
+		HandleImpact(Hit, DeltaTime, Adjusted);
+		SlideAlongSurface(Adjusted, (1.f - Hit.Time), Hit.Normal, Hit, true);
+	}
+
+	if (!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
+	{
+		Velocity = (UpdatedComponent->GetComponentLocation() - OldLocation) / DeltaTime;
+	}
+
+	// 将角色移动固定到攀爬表面
+	
+}
+
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -103,6 +179,12 @@ void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 
 void UCustomMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
 {
+	if (IsClimbing())
+	{
+		// 如果处于攀爬模式
+		PhysClimb(DeltaTime, Iterations);
+	}
+
 	Super::PhysCustom(DeltaTime, Iterations);
 }
 
