@@ -32,9 +32,14 @@ public:
 	bool CanStartClimbing();
 
 protected:
+	// 重写TickComponent
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	// 重写移动模式改变
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
+	// 重写物理计算
+	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
 private:
 	void StartClimbing();

@@ -101,6 +101,11 @@ void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 }
 
+void UCustomMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
+{
+	Super::PhysCustom(DeltaTime, Iterations);
+}
+
 bool UCustomMovementComponent::TraceClimbableSurface()
 {
 
