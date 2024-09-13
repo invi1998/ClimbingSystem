@@ -138,5 +138,14 @@ void AClimbingSystemCharacter::Look(const FInputActionValue& Value)
 
 void AClimbingSystemCharacter::Climbing(const FInputActionValue& Value)
 {
-	CS_Debug::Print(FString::Printf(TEXT("'%s' is climbing!"), *GetName()));
+	if (!CustomMovementComponent) return;
+
+	if (CustomMovementComponent->IsClimbing())
+	{
+		CustomMovementComponent->ToogleClimbingMode(false);
+	}
+	else
+	{
+		CustomMovementComponent->ToogleClimbingMode(true);
+	}
 }
