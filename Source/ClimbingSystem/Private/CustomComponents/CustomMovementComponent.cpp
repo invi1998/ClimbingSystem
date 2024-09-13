@@ -85,9 +85,14 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 
 	// 处理攀爬表面
 	TraceClimbableSurface();
-
 	ProcessClimbableSurfaceInfo();
 
+	// 检测是否应该攀爬
+	if (!CheckShouldClimb())
+	{
+		// 如果不应该攀爬，停止攀爬
+		StopClimbing();
+	}
 
 	RestorePreAdditiveRootMotionVelocity();
 
@@ -121,6 +126,34 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	// 将角色移动固定到攀爬表面
 	SnapMovementToClimbableSurface(DeltaTime);
 	
+}
+
+bool UCustomMovementComponent::CheckShouldClimb() const
+{
+	// 检查是否应该攀爬
+	if (ClimbableSurfaceTraceHits.IsEmpty())
+	{
+		// 如果未检测到可攀爬表面，不应该攀爬
+		return false;
+	}
+
+	//if (!TraceFromEyeHeight(100.f).bBlockingHit)
+	//{
+	//	// 如果未检测到攀爬顶端，不应该攀爬
+	//	return false;
+	//}
+
+	// 计算当前攀爬表面法线和上向量的点积，然后计算角度差
+	const float DotResult = FVector::DotProduct(CurrentClimbableSurfaceNormal, FVector::UpVector);
+	const float DegreeDifference = FMath::RadiansToDegrees(FMath::Acos(DotResult));		// 计算角度差
+
+	if (DegreeDifference <= 60.f)
+	{
+		// 如果角度差小于等于60度，不应该攀爬（表明角色已经攀爬到了一个太平的表面上）
+		return false;
+	}
+
+	return true;
 }
 
 void UCustomMovementComponent::ProcessClimbableSurfaceInfo()

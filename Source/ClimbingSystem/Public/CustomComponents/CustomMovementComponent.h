@@ -57,6 +57,9 @@ private:
 
 	void PhysClimb(float DeltaTime, int32 Iterations);
 
+	// 检查是否应该攀爬
+	bool CheckShouldClimb() const;
+
 	// 跟踪可攀爬表面
 	bool TraceClimbableSurface();
 
@@ -99,5 +102,7 @@ private:
 
 	FVector CurrentClimbableSurfaceLocation;	// 当前可攀爬表面的位置
 	FVector CurrentClimbableSurfaceNormal;		// 当前可攀爬表面的法线
+
+
 	
 };
