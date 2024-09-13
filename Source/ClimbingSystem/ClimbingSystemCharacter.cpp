@@ -142,10 +142,10 @@ void AClimbingSystemCharacter::Climbing(const FInputActionValue& Value)
 
 	if (CustomMovementComponent->IsClimbing())
 	{
-		CustomMovementComponent->ToogleClimbingMode(false);
+		CustomMovementComponent->ToggleClimbingMode(false);
 	}
 	else
 	{
-		CustomMovementComponent->ToogleClimbingMode(true);
+		CustomMovementComponent->ToggleClimbingMode(true);
 	}
 }

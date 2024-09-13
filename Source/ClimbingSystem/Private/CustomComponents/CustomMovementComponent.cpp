@@ -7,8 +7,9 @@
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "ClimbingSystem/ClimbingSystemCharacter.h"
+#include "Components/CapsuleComponent.h"
 
-void UCustomMovementComponent::ToogleClimbingMode(bool bEnableClimb)
+void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
 {
 	if (bEnableClimb)
 	{
@@ -17,6 +18,7 @@ void UCustomMovementComponent::ToogleClimbingMode(bool bEnableClimb)
 		{
 			// Start climbing
 			CS_Debug::Print("Start climbing", FColor::Green);
+			StartClimbing();
 		}
 		else
 		{
@@ -26,6 +28,7 @@ void UCustomMovementComponent::ToogleClimbingMode(bool bEnableClimb)
 	else
 	{
 		// Disable climbing mode
+		StopClimbing();
 	}
 }
 
@@ -59,18 +62,51 @@ bool UCustomMovementComponent::CanStartClimbing()
 
 }
 
+void UCustomMovementComponent::StartClimbing()
+{
+	// 设置自定义移动模式为攀爬模式
+	SetMovementMode(MOVE_Custom, ECustomMovementMode::MOVE_Climb);
+}
+
+void UCustomMovementComponent::StopClimbing()
+{
+	// 设置自定义移动模式为默认模式
+	SetMovementMode(MOVE_Falling);
+}
+
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 }
 
+void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+
+	if (IsClimbing())
+	{
+		// 如果进入攀爬模式
+		bOrientRotationToMovement = false;	// 不根据移动方向旋转角色
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(45.0f);	// 设置胶囊体高度
+	}
+	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == ECustomMovementMode::MOVE_Climb)
+	{
+		// 如果离开攀爬模式
+		bOrientRotationToMovement = true;	// 根据移动方向旋转角色
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);	// 恢复胶囊体高度
+
+		StopMovementImmediately();		// 停止移动
+	}
+
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
 bool UCustomMovementComponent::TraceClimbableSurface()
 {
 
-	const FVector StartOffset = UpdatedComponent->GetForwardVector() * 50.0f;
+	const FVector StartOffset = UpdatedComponent->GetForwardVector() * 30.0f;
 	const FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
-	const FVector End = Start + UpdatedComponent->GetForwardVector() * 100.0f;
+	const FVector End = Start + UpdatedComponent->GetForwardVector();
 
 	ClimbableSurfaceTraceHits = DoCapsuleTraceMultiByObject(Start, End, true, true);
 

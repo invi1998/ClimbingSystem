@@ -25,7 +25,7 @@ class CLIMBINGSYSTEM_API UCustomMovementComponent : public UCharacterMovementCom
 
 public:
 	// 设置是否开启攀爬模式
-	void ToogleClimbingMode(bool bEnableClimb);
+	void ToggleClimbingMode(bool bEnableClimb);
 	bool IsClimbing() const;
 
 	// 是否可以开始攀爬
@@ -34,7 +34,13 @@ public:
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
 private:
+	void StartClimbing();
+
+	void StopClimbing();
+
 	// 跟踪可攀爬表面
 	bool TraceClimbableSurface();
 
