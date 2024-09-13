@@ -73,5 +73,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	float MaxBrakingDeceleration = 400.f;	// 最大减速度
+
+	void ProcessClimbableSurfaceInfo();
+
+	FVector CurrentClimbableSurfaceLocation;	// 当前可攀爬表面的位置
+	FVector CurrentClimbableSurfaceNormal;		// 当前可攀爬表面的法线
 	
 };

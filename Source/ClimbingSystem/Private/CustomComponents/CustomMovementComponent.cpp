@@ -76,46 +76,18 @@ void UCustomMovementComponent::StopClimbing()
 
 void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 {
+	// 该函数用于处理攀爬模式下的物理计算，在进入攀爬模式时会被每帧调用
+
 	if (DeltaTime < MIN_TICK_TIME)
 	{
 		return;
 	}
 
 	// 处理攀爬表面
-	// 获取攀爬表面法线
-	const FVector ClimbSurfaceNormal = ClimbableSurfaceTraceHits[0].ImpactNormal;
+	TraceClimbableSurface();
 
-	// 获取攀爬表面法线与角色前方向的夹角
-	const float DotResult = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetForwardVector());
+	ProcessClimbableSurfaceInfo();
 
-	// 获取攀爬表面法线与角色上方向的夹角
-	const float DotResultUp = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetUpVector());
-
-	// 获取攀爬表面法线与角色右方向的夹角
-	const float DotResultRight = FVector::DotProduct(ClimbSurfaceNormal, UpdatedComponent->GetRightVector());
-
-	// 获取攀爬表面法线与角色后方向的夹角
-	const float DotResultBack = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetForwardVector());
-
-	// 获取攀爬表面法线与角色下方向的夹角
-	const float DotResultDown = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetUpVector());
-
-	// 获取攀爬表面法线与角色左方向的夹角
-	const float DotResultLeft = FVector::DotProduct(ClimbSurfaceNormal, -UpdatedComponent->GetRightVector());
-
-	// 获取攀爬表面法线与角色前方向的夹角的绝对值
-	const float AbsDotResult = FMath::Abs(DotResult);
-
-	// 获取攀爬表面法线与角色上方向的夹角的绝对值
-	const float AbsDotResultUp = FMath::Abs(DotResultUp);
-
-	// 获取攀爬表面法线与角色右方向的夹角的绝对值
-	const float AbsDotResultRight = FMath::Abs(DotResultRight);
-
-	// 获取攀爬表面法线与角色后方向的夹角的绝对值
-	const float AbsDotResultBack = FMath::Abs(DotResultBack);
-
-	// 获取攀爬表面法线与角色下方向的夹角的绝对值
 
 	RestorePreAdditiveRootMotionVelocity();
 
@@ -148,6 +120,30 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 
 	// 将角色移动固定到攀爬表面
 	
+}
+
+void UCustomMovementComponent::ProcessClimbableSurfaceInfo()
+{
+	CurrentClimbableSurfaceLocation = FVector::ZeroVector;
+	CurrentClimbableSurfaceNormal = FVector::ZeroVector;
+
+	if (ClimbableSurfaceTraceHits.IsEmpty()) return;
+
+	// 计算攀爬表面的位置和法线，取所有射线检测结果的平均值
+	for (const FHitResult& Hit : ClimbableSurfaceTraceHits)
+	{
+		CurrentClimbableSurfaceLocation += Hit.ImpactPoint;
+		CurrentClimbableSurfaceNormal += Hit.ImpactNormal;
+	}
+
+	CurrentClimbableSurfaceLocation /= ClimbableSurfaceTraceHits.Num();
+	
+	CurrentClimbableSurfaceNormal = CurrentClimbableSurfaceNormal.GetSafeNormal();
+
+	// Debug
+	UKismetSystemLibrary::DrawDebugSphere(this, CurrentClimbableSurfaceLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
+	UKismetSystemLibrary::DrawDebugArrow(this, CurrentClimbableSurfaceLocation, CurrentClimbableSurfaceLocation + CurrentClimbableSurfaceNormal * 100.f, 10.f, FColor::Green, 0.1f, 1.0f);
+
 }
 
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -195,7 +191,7 @@ bool UCustomMovementComponent::TraceClimbableSurface()
 	const FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector();
 
-	ClimbableSurfaceTraceHits = DoCapsuleTraceMultiByObject(Start, End, true, true);
+	ClimbableSurfaceTraceHits = DoCapsuleTraceMultiByObject(Start, End, true);
 
 	return !ClimbableSurfaceTraceHits.IsEmpty();
 }
@@ -256,3 +252,5 @@ FHitResult UCustomMovementComponent::DoLineTraceSingleByObject(const FVector& St
 
 	return HitResult;
 }
+
+
