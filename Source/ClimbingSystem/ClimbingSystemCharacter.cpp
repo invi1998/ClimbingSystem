@@ -102,6 +102,21 @@ void AClimbingSystemCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 void AClimbingSystemCharacter::Move(const FInputActionValue& Value)
 {
+	if (!CustomMovementComponent) return;
+
+	if (CustomMovementComponent->IsClimbing())
+	{
+		HandleClimbingMovementInput(Value);
+	}
+	else
+	{
+		HandleGroundMovementInput(Value);
+	}
+
+}
+
+void AClimbingSystemCharacter::HandleGroundMovementInput(const FInputActionValue& Value)
+{
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -113,7 +128,7 @@ void AClimbingSystemCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -121,6 +136,25 @@ void AClimbingSystemCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
+}
+
+void AClimbingSystemCharacter::HandleClimbingMovementInput(const FInputActionValue& Value)
+{
+	const FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// 使用攀爬表面法线和角色右向量的叉乘来计算角色的前向向量（因为是在墙面攀爬，所以这里角色的移动的前向向量就是上下方向）,同时，注意这里的法线是反的，所以要取反
+		const FVector ForwardDirection = FVector::CrossProduct(-CustomMovementComponent->GetCurrentClimbableSurfaceNormal(), GetActorRightVector()).GetSafeNormal();
+
+		// 使用攀爬表面法线和角色上向量的叉乘来计算角色的右向量
+		const FVector RightDirection = FVector::CrossProduct(-CustomMovementComponent->GetCurrentClimbableSurfaceNormal(), -GetActorUpVector()).GetSafeNormal();
+
+		// add movement 
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+
 }
 
 void AClimbingSystemCharacter::Look(const FInputActionValue& Value)

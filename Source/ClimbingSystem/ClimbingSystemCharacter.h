@@ -39,6 +39,12 @@ protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
+	/* 处理地面移动输入 */
+	void HandleGroundMovementInput(const FInputActionValue& Value);
+
+	/* 处理攀爬移动输入 */
+	void HandleClimbingMovementInput(const FInputActionValue& Value);
+
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
