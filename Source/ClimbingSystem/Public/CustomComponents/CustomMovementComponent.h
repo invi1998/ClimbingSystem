@@ -6,6 +6,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CustomMovementComponent.generated.h"
 
+class UAnimMontage;
+class UAnimInstance;
+
 UENUM(BlueprintType)
 namespace ECustomMovementMode
 {
@@ -35,6 +38,11 @@ public:
 	FORCEINLINE FVector GetCurrentClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
 
 protected:
+	UFUNCTION()
+	void OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted);		// 攀爬蒙太奇结束
+
+	virtual void BeginPlay() override;
+
 	// 重写TickComponent
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -102,6 +110,20 @@ private:
 
 	FVector CurrentClimbableSurfaceLocation;	// 当前可攀爬表面的位置
 	FVector CurrentClimbableSurfaceNormal;		// 当前可攀爬表面的法线
+
+	UPROPERTY()
+	UAnimInstance* CharacterAnimInstance = nullptr;
+
+	void PlayClimbMontage(UAnimMontage* MontageToPlay);
+
+	/**
+	 * UnGrabWall Montages （未抓住墙壁动画，上墙和下墙）
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing: Montage", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_StandToWallUp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing: Montage", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_WallDownToStand = nullptr;
 
 
 	

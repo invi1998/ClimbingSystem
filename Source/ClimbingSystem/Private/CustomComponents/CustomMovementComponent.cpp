@@ -3,11 +3,36 @@
 
 #include "CustomComponents/CustomMovementComponent.h"
 
+#include "Character/CharacterAnimInstance.h"
 #include "ClimbingSystem/DebugHelper.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "ClimbingSystem/ClimbingSystemCharacter.h"
 #include "Components/CapsuleComponent.h"
+
+
+
+
+void UCustomMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CharacterAnimInstance = Cast<UCharacterAnimInstance>(CharacterOwner->GetMesh()->GetAnimInstance());
+
+	if (CharacterAnimInstance)
+	{
+		// 绑定攀爬蒙太奇结束事件
+		CharacterAnimInstance->OnMontageEnded.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
+		// 绑定攀爬蒙太奇淡出事件
+		CharacterAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
+	}
+}
+
+void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+}
 
 void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
 {
@@ -66,6 +91,7 @@ void UCustomMovementComponent::StartClimbing()
 {
 	// 设置自定义移动模式为攀爬模式
 	SetMovementMode(MOVE_Custom, ECustomMovementMode::MOVE_Climb);
+	PlayClimbMontage(AnimMontage_StandToWallUp);
 }
 
 void UCustomMovementComponent::StopClimbing()
@@ -216,10 +242,37 @@ void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
 		true);
 }
 
-void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+	// 攀爬蒙太奇结束
+	if (bBInterrupted)
+	{
+		// 如果被打断，停止攀爬
+		StopClimbing();
+	}
+	else
+	{
+		// 如果未被打断，继续攀爬
+		// ContinueClimbing();
+	}
+}
+
+void UCustomMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
+{
+	if (CharacterAnimInstance && MontageToPlay)
+	{
+		if (CharacterAnimInstance->Montage_IsPlaying(MontageToPlay))
+		{
+			// 如果动画正在播放，不重复播放
+			return;
+		}
+		if (CharacterAnimInstance->IsAnyMontagePlaying())
+		{
+			// 如果有动画正在播放，停止播放
+			CharacterAnimInstance->Montage_Stop(0.2f, CharacterAnimInstance->GetCurrentActiveMontage());
+		}
+		CharacterAnimInstance->Montage_Play(MontageToPlay);
+	}
 }
 
 void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
