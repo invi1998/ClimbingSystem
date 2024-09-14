@@ -49,5 +49,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
 	bool bIsClimbing;		// 是否在攀爬
 	void GetIsClimbing();	// 获取是否在攀爬
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
+	FVector ClimbVelocity;	// 攀爬速度
+	void GetClimbVelocity();	// 获取攀爬速度
 	
 };

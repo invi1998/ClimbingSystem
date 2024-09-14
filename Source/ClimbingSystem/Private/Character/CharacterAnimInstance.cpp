@@ -4,6 +4,7 @@
 #include "Character/CharacterAnimInstance.h"
 
 #include "ClimbingSystem/ClimbingSystemCharacter.h"
+#include "ClimbingSystem/DebugHelper.h"
 #include "CustomComponents/CustomMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -30,6 +31,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	GetIsFalling();
 	GetShouldMove();
 	GetIsClimbing();
+	GetClimbVelocity();
 }
 
 void UCharacterAnimInstance::GetGroundSpeed()
@@ -93,5 +95,17 @@ void UCharacterAnimInstance::GetIsClimbing()
 	else
 	{
 		bIsClimbing = false;
+	}
+}
+
+void UCharacterAnimInstance::GetClimbVelocity()
+{
+	if (CustomMovementComponent)
+	{
+		ClimbVelocity = CustomMovementComponent->GetUnRotatedClimbVelocity();
+	}
+	else
+	{
+		ClimbVelocity = FVector::ZeroVector;
 	}
 }

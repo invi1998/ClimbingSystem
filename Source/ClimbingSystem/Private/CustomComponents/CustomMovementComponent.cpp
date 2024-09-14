@@ -9,8 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "ClimbingSystem/ClimbingSystemCharacter.h"
 #include "Components/CapsuleComponent.h"
-
-
+#include "Kismet/KismetMathLibrary.h"
 
 
 void UCustomMovementComponent::BeginPlay()
@@ -244,6 +243,12 @@ void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
 		SnapVector*DeltaTime*MaxClimbSpeed,
 		UpdatedComponent->GetComponentQuat(),
 		true);
+}
+
+FVector UCustomMovementComponent::GetUnRotatedClimbVelocity() const
+{
+	// 获取未旋转的攀爬速度（因为四元数旋转的特性，所以要对速度进行反旋转，就能得到未旋转的速度）
+	return UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), Velocity);
 }
 
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)

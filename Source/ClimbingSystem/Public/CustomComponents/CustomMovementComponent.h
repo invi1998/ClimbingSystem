@@ -37,6 +37,8 @@ public:
 	FORCEINLINE FVector GetCurrentClimbableSurfaceLocation() const { return CurrentClimbableSurfaceLocation; }
 	FORCEINLINE FVector GetCurrentClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
 
+	FVector GetUnRotatedClimbVelocity() const;	// 获取未旋转的攀爬速度
+
 protected:
 	UFUNCTION()
 	void OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted);		// 攀爬蒙太奇结束
