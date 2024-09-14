@@ -46,5 +46,8 @@ private:
 	bool bIsFalling;		// 是否在下落
 	void GetIsFalling();	// 获取是否在下落
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
+	bool bIsClimbing;		// 是否在攀爬
+	void GetIsClimbing();	// 获取是否在攀爬
 	
 };

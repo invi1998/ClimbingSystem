@@ -7,7 +7,7 @@
 #include "CustomMovementComponent.generated.h"
 
 class UAnimMontage;
-class UAnimInstance;
+class UCharacterAnimInstance;
 
 UENUM(BlueprintType)
 namespace ECustomMovementMode
@@ -112,18 +112,18 @@ private:
 	FVector CurrentClimbableSurfaceNormal;		// 当前可攀爬表面的法线
 
 	UPROPERTY()
-	UAnimInstance* CharacterAnimInstance = nullptr;
+	UAnimInstance* CharacterAnimInstance;
 
 	void PlayClimbMontage(UAnimMontage* MontageToPlay);
 
 	/**
 	 * UnGrabWall Montages （未抓住墙壁动画，上墙和下墙）
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing: Montage", meta=(AllowPrivateAccess = "true"))
-	UAnimMontage* AnimMontage_StandToWallUp = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_StandToWallUp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing: Montage", meta=(AllowPrivateAccess = "true"))
-	UAnimMontage* AnimMontage_WallDownToStand = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_WallDownToStand;
 
 
 	

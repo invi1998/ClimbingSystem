@@ -17,7 +17,7 @@ void UCustomMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterAnimInstance = Cast<UCharacterAnimInstance>(CharacterOwner->GetMesh()->GetAnimInstance());
+	CharacterAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
 
 	if (CharacterAnimInstance)
 	{
@@ -25,6 +25,11 @@ void UCustomMovementComponent::BeginPlay()
 		CharacterAnimInstance->OnMontageEnded.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
 		// 绑定攀爬蒙太奇淡出事件
 		CharacterAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
+	}
+	else
+	{
+		CS_Debug::Print("CharacterAnimInstance is nullptr", FColor::Red);
+	
 	}
 }
 
@@ -43,7 +48,7 @@ void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
 		{
 			// Start climbing
 			CS_Debug::Print("Start climbing", FColor::Green);
-			StartClimbing();
+			PlayClimbMontage(AnimMontage_StandToWallUp);
 		}
 		else
 		{
@@ -91,7 +96,6 @@ void UCustomMovementComponent::StartClimbing()
 {
 	// 设置自定义移动模式为攀爬模式
 	SetMovementMode(MOVE_Custom, ECustomMovementMode::MOVE_Climb);
-	PlayClimbMontage(AnimMontage_StandToWallUp);
 }
 
 void UCustomMovementComponent::StopClimbing()
@@ -245,15 +249,23 @@ void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
 	// 攀爬蒙太奇结束
-	if (bBInterrupted)
+	if (Montage == AnimMontage_StandToWallUp)
 	{
-		// 如果被打断，停止攀爬
-		StopClimbing();
+		// 如果是上墙蒙太奇结束
+		if (!bBInterrupted)
+		{
+			// 如果未被打断
+			StartClimbing();
+		}
 	}
-	else
+	else if (Montage == AnimMontage_WallDownToStand)
 	{
-		// 如果未被打断，继续攀爬
-		// ContinueClimbing();
+		// 如果是下墙蒙太奇结束
+		if (!bBInterrupted)
+		{
+			// 如果未被打断
+			StopClimbing();
+		}
 	}
 }
 
@@ -261,17 +273,23 @@ void UCustomMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
 {
 	if (CharacterAnimInstance && MontageToPlay)
 	{
-		if (CharacterAnimInstance->Montage_IsPlaying(MontageToPlay))
-		{
-			// 如果动画正在播放，不重复播放
-			return;
-		}
+		//if (CharacterAnimInstance->Montage_IsPlaying(MontageToPlay))
+		//{
+		//	// 如果动画正在播放，不重复播放
+		//	return;
+		//}
 		if (CharacterAnimInstance->IsAnyMontagePlaying())
 		{
 			// 如果有动画正在播放，停止播放
-			CharacterAnimInstance->Montage_Stop(0.2f, CharacterAnimInstance->GetCurrentActiveMontage());
+			return;
 		}
+
+		CS_Debug::Print("Play climb montage", FColor::Green);
 		CharacterAnimInstance->Montage_Play(MontageToPlay);
+	}
+	else
+	{
+		CS_Debug::Print("CharacterAnimInstance or MontageToPlay is nullptr", FColor::Red);
 	}
 }
 
@@ -339,7 +357,7 @@ bool UCustomMovementComponent::TraceClimbableSurface()
 	const FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector();
 
-	ClimbableSurfaceTraceHits = DoCapsuleTraceMultiByObject(Start, End, true);
+	ClimbableSurfaceTraceHits = DoCapsuleTraceMultiByObject(Start, End, false);
 
 	return !ClimbableSurfaceTraceHits.IsEmpty();
 }
@@ -352,7 +370,7 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 	const FVector Start = ComponentLocation + EyeHeightOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
 
-	return DoLineTraceSingleByObject(Start, End, true, true);
+	return DoLineTraceSingleByObject(Start, End, false, true);
 }
 
 TArray<FHitResult> UCustomMovementComponent::DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes) const
