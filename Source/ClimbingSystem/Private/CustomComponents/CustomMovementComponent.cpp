@@ -160,7 +160,6 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	{
 		// 如果到达攀爬顶端，播放下墙蒙太奇
 		// PlayClimbMontage(AnimMontage_WallDownToStand);
-		CS_Debug::Print("Reached ledge", FColor::Green);
 	}
 	
 }
