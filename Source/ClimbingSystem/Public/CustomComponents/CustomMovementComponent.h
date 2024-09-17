@@ -60,6 +60,9 @@ protected:
 	// 重写获取最大加速度
 	virtual float GetMaxAcceleration() const override;
 
+	// 重写根动作约束，用于处理攀爬时的根动作
+	virtual FVector ConstrainAnimRootMotionVelocity(const FVector& RootMotionVelocity, const FVector& CurrentVelocity) const override;
+
 private:
 	void StartClimbing();
 
@@ -131,7 +134,7 @@ private:
 	UAnimMontage* AnimMontage_StandToWallUp;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
-	UAnimMontage* AnimMontage_WallDownToStand;
+	UAnimMontage* AnimMontage_ClimbToTop;
 
 
 	

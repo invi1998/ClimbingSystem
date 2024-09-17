@@ -159,7 +159,7 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	if (CheckReachedLedge())
 	{
 		// 如果到达攀爬顶端，播放下墙蒙太奇
-		// PlayClimbMontage(AnimMontage_WallDownToStand);
+		PlayClimbMontage(AnimMontage_ClimbToTop);
 	}
 	
 }
@@ -225,7 +225,7 @@ bool UCustomMovementComponent::CheckReachableGround() const
 bool UCustomMovementComponent::CheckReachedLedge() const
 {
 	// 检测是否到达攀爬顶端
-	FHitResult EyeHeightHitResult = TraceFromEyeHeight(100.f, -10.f);		// 从眼睛高度上方50.f开始检测
+	FHitResult EyeHeightHitResult = TraceFromEyeHeight(100.f, 10.f);		// 从眼睛高度上方50.f开始检测
 
 	if (EyeHeightHitResult.bBlockingHit)
 	{
@@ -238,7 +238,7 @@ bool UCustomMovementComponent::CheckReachedLedge() const
 	const FVector DownVector = -UpdatedComponent->GetUpVector();
 	const FVector WalkableSurfaceTraceEnd = WalkableSurfaceTraceStart + DownVector * 100.f;
 
-	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, true, false);
+	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, false, false);
 
 	if (WalkableSurfaceHitResult.bBlockingHit && GetUnRotatedClimbVelocity().Z > 10.f)
 	{
@@ -328,14 +328,10 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 			StartClimbing();
 		}
 	}
-	else if (Montage == AnimMontage_WallDownToStand)
+	else if (Montage == AnimMontage_ClimbToTop)
 	{
-		// 如果是下墙蒙太奇结束
-		if (!bBInterrupted)
-		{
-			// 如果未被打断
-			StopClimbing();
-		}
+		// 如果是上到顶端蒙太奇结束
+		SetMovementMode(MOVE_Walking);
 	}
 }
 
@@ -420,6 +416,21 @@ float UCustomMovementComponent::GetMaxAcceleration() const
 	return Super::GetMaxAcceleration();
 }
 
+FVector UCustomMovementComponent::ConstrainAnimRootMotionVelocity(const FVector& RootMotionVelocity, const FVector& CurrentVelocity) const
+{
+	// 这里之所以重写这个函数，是因为我们需要在攀爬模式下，限制根动作的速度，使角色在攀爬时不会因为根动作速度过大而脱离攀爬表面
+	// 同时，在父类中，这个函数会判断角色是否处于掉落状态，如果是，会将根动作速度限制为0，这样会导致角色在攀爬时无法播放根动作
+	if (IsFalling() && CharacterAnimInstance && CharacterAnimInstance->IsAnyMontagePlaying())
+	{
+		// 如果角色处于掉落状态，并且有动画蒙太奇正在播放
+		return RootMotionVelocity;
+	}
+	else
+	{
+		return Super::ConstrainAnimRootMotionVelocity(RootMotionVelocity, CurrentVelocity);
+	}
+}
+
 bool UCustomMovementComponent::TraceClimbableSurface()
 {
 
@@ -440,7 +451,7 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 	const FVector Start = ComponentLocation + EyeHeightOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
 
-	return DoLineTraceSingleByObject(Start, End, true, false);
+	return DoLineTraceSingleByObject(Start, End, false, false);
 }
 
 TArray<FHitResult> UCustomMovementComponent::DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes) const
