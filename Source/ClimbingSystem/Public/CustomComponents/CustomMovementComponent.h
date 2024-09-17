@@ -97,10 +97,10 @@ private:
 	float MaxBrakingDeceleration = 400.f;	// 最大减速度
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
-	float MaxClimbSpeed = 200.f;	// 最大攀爬速度
+	float MaxClimbSpeed = 100.f;	// 最大攀爬速度
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
-	float MaxClimbAcceleration = 500.f;	// 最大攀爬加速度
+	float MaxClimbAcceleration = 200.f;	// 最大攀爬加速度
 
 	void ProcessClimbableSurfaceInfo();
 
