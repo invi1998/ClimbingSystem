@@ -117,9 +117,10 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	ProcessClimbableSurfaceInfo();
 
 	// 检测是否应该攀爬
-	if (!CheckShouldClimb())
+	if (!CheckShouldClimb() || CheckReachableGround())
 	{
 		// 如果不应该攀爬，停止攀爬
+		// 如果到达地面，停止攀爬
 		StopClimbing();
 	}
 
@@ -183,6 +184,36 @@ bool UCustomMovementComponent::CheckShouldClimb() const
 	}
 
 	return true;
+}
+
+bool UCustomMovementComponent::CheckReachableGround() const
+{
+	// 检测是否到达地面
+	const FVector DownVector = -UpdatedComponent->GetUpVector();
+	const FVector StartOffset = DownVector * 50.0f;
+
+	const FVector Start = UpdatedComponent->GetComponentLocation() + StartOffset;
+	const FVector End = Start + DownVector;
+
+	TArray<FHitResult> HitResults = DoCapsuleTraceMultiByObject(Start, End, false, false);
+
+	if (HitResults.IsEmpty())
+	{
+		// 如果未检测到地面，返回false
+		return false;
+	}
+
+	for (const FHitResult& Hit : HitResults)
+	{
+		// 这里我们需要判断是可攀爬表面还是地面
+		const bool bIsClimbableSurface = FVector::Parallel(-Hit.ImpactNormal, FVector::UpVector, 0.1f)		// 判断是否与上向量平行(0.1f是容差)
+			&& GetUnRotatedClimbVelocity().Z <  -10.f;		// 判断是否在下落(速度小于-10.f)
+
+		return bIsClimbableSurface;
+	}
+
+	return false;
+
 }
 
 void UCustomMovementComponent::ProcessClimbableSurfaceInfo()
