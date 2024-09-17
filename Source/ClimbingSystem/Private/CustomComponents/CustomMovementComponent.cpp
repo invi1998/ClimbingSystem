@@ -155,6 +155,13 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 
 	// 将角色移动固定到攀爬表面
 	SnapMovementToClimbableSurface(DeltaTime);
+
+	if (CheckReachedLedge())
+	{
+		// 如果到达攀爬顶端，播放下墙蒙太奇
+		// PlayClimbMontage(AnimMontage_WallDownToStand);
+		CS_Debug::Print("Reached ledge", FColor::Green);
+	}
 	
 }
 
@@ -214,6 +221,34 @@ bool UCustomMovementComponent::CheckReachableGround() const
 
 	return false;
 
+}
+
+bool UCustomMovementComponent::CheckReachedLedge() const
+{
+	// 检测是否到达攀爬顶端
+	FHitResult EyeHeightHitResult = TraceFromEyeHeight(100.f, -10.f);		// 从眼睛高度上方50.f开始检测
+
+	if (EyeHeightHitResult.bBlockingHit)
+	{
+		// 如果检测到阻挡，说明还未到达攀爬顶端
+		return false;
+	}
+
+	// 如果未检测到阻挡，说明到达攀爬顶端，此时在视角前方100.f的位置，再次检测垂直方向是否有阻挡
+	const FVector WalkableSurfaceTraceStart = EyeHeightHitResult.TraceEnd;
+	const FVector DownVector = -UpdatedComponent->GetUpVector();
+	const FVector WalkableSurfaceTraceEnd = WalkableSurfaceTraceStart + DownVector * 100.f;
+
+	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, true, false);
+
+	if (WalkableSurfaceHitResult.bBlockingHit && GetUnRotatedClimbVelocity().Z > 10.f)
+	{
+		// 如果检测到阻挡，说明到达了攀爬顶端，并且前方100.f的位置有地面，返回true
+		// 并且速度大于10.f，表明角色正在向上攀爬
+		return true;
+	}
+
+	return false;
 }
 
 void UCustomMovementComponent::ProcessClimbableSurfaceInfo()
@@ -406,7 +441,7 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 	const FVector Start = ComponentLocation + EyeHeightOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
 
-	return DoLineTraceSingleByObject(Start, End, false, true);
+	return DoLineTraceSingleByObject(Start, End, true, false);
 }
 
 TArray<FHitResult> UCustomMovementComponent::DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes) const

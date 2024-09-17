@@ -73,6 +73,9 @@ private:
 	// 检测是否到达地面
 	bool CheckReachableGround() const;
 
+	// 检测是否到达攀爬顶端
+	bool CheckReachedLedge() const;
+
 	// 跟踪可攀爬表面
 	bool TraceClimbableSurface();
 
