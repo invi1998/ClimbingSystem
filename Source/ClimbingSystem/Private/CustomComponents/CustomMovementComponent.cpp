@@ -225,7 +225,7 @@ bool UCustomMovementComponent::CheckReachableGround() const
 bool UCustomMovementComponent::CheckReachedLedge() const
 {
 	// 检测是否到达攀爬顶端
-	FHitResult EyeHeightHitResult = TraceFromEyeHeight(100.f, 10.f);		// 从眼睛高度上方50.f开始检测
+	FHitResult EyeHeightHitResult = TraceFromEyeHeight(100.f, 50.f);		// 从眼睛高度上方50.f开始检测
 
 	if (EyeHeightHitResult.bBlockingHit)
 	{
