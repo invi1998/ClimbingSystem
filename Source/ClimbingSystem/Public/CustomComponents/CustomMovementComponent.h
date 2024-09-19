@@ -114,11 +114,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	float MaxClimbAcceleration = 200.f;	// 最大攀爬加速度
 
+	// 夹角阈值（收拢下面这两个参数，可以让角色的下落检测更严格，避免角色在下落时朝向过于错误）
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
-	float ClimbDownWalkableSurfaceTraceOffset = 100.f;	// 攀爬下行走表面射线检测偏移
+	float ClimbDownWalkableSurfaceTraceOffset = 25.f;	// 攀爬下行走表面射线检测偏移
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
-	float ClimbDownLedgeTraceOffset = 50.f;	// 攀爬下行走表面射线检测偏移
+	float ClimbDownLedgeTraceOffset = 18.f;	// 攀爬下行走表面射线检测偏移
 
 	void ProcessClimbableSurfaceInfo();
 

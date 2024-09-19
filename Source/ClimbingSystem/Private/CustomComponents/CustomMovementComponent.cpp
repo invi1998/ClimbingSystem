@@ -126,12 +126,12 @@ bool UCustomMovementComponent::CanClimbDownLedge() const
 	const FVector WalkableSurfaceTraceStart = ComponentLocation + ComponentForward * ClimbDownWalkableSurfaceTraceOffset;
 	const FVector WalkableSurfaceTraceEnd = WalkableSurfaceTraceStart + DownVector * 100.f;
 
-	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, true, false);
+	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, false, false);
 
 	const FVector LedgeTraceStart = WalkableSurfaceHitResult.TraceStart + ComponentForward * ClimbDownLedgeTraceOffset;
 	const FVector LedgeTraceEnd = LedgeTraceStart + DownVector * 300.f;
 
-	FHitResult LedgeTraceHitResult = DoLineTraceSingleByObject(LedgeTraceStart, LedgeTraceEnd, true, false);
+	FHitResult LedgeTraceHitResult = DoLineTraceSingleByObject(LedgeTraceStart, LedgeTraceEnd, false, false);
 
 	if (WalkableSurfaceHitResult.bBlockingHit && !LedgeTraceHitResult.bBlockingHit)
 	{
@@ -207,6 +207,7 @@ void UCustomMovementComponent::PhysClimb(float DeltaTime, int32 Iterations)
 	// 将角色移动固定到攀爬表面
 	SnapMovementToClimbableSurface(DeltaTime);
 
+	// 
 	if (CheckReachedLedge())
 	{
 		// 如果到达攀爬顶端，播放下墙蒙太奇
@@ -356,7 +357,7 @@ void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
 	const FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
 
 	// 绘制 SnapVector
-	UKismetSystemLibrary::DrawDebugArrow(this, ComponentLocation, ComponentLocation + SnapVector, 10.f, FColor::Green, 0.1f, 1.0f);
+	// UKismetSystemLibrary::DrawDebugArrow(this, ComponentLocation, ComponentLocation + SnapVector, 10.f, FColor::Green, 0.1f, 1.0f);
 
 	UpdatedComponent->MoveComponent(
 		SnapVector*DeltaTime*MaxClimbSpeed,
@@ -373,12 +374,11 @@ FVector UCustomMovementComponent::GetUnRotatedClimbVelocity() const
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
 	// 攀爬蒙太奇结束
-	if (Montage == AnimMontage_StandToWallUp)
+	if (Montage == AnimMontage_StandToWallUp || Montage == AnimMontage_ClimbToDown)
 	{
-		// 如果是上墙蒙太奇结束
 		if (!bBInterrupted)
 		{
-			// 如果未被打断
+			// 如果是上墙蒙太奇被打断，不继续攀爬
 			StartClimbing();
 		}
 	}
@@ -387,34 +387,24 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 		// 如果是上到顶端蒙太奇结束
 		SetMovementMode(MOVE_Walking);
 	}
-	else if (Montage == AnimMontage_ClimbToDown)
-	{
-		// 如果是下墙蒙太奇结束
-		StartClimbing();
-	}
 }
 
 void UCustomMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
 {
 	if (CharacterAnimInstance && MontageToPlay)
 	{
-		//if (CharacterAnimInstance->Montage_IsPlaying(MontageToPlay))
-		//{
-		//	// 如果动画正在播放，不重复播放
-		//	return;
-		//}
+		if (CharacterAnimInstance->Montage_IsPlaying(MontageToPlay))
+		{
+			// 如果动画正在播放，不重复播放
+			return;
+		}
 		if (CharacterAnimInstance->IsAnyMontagePlaying())
 		{
 			// 如果有动画正在播放，停止播放
 			return;
 		}
-
-		CS_Debug::Print("Play climb montage", FColor::Green);
+		
 		CharacterAnimInstance->Montage_Play(MontageToPlay);
-	}
-	else
-	{
-		CS_Debug::Print("CharacterAnimInstance or MontageToPlay is nullptr", FColor::Red);
 	}
 }
 
