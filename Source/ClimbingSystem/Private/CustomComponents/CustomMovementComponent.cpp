@@ -36,6 +36,16 @@ void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	// 如果角色移动速度大于0.1f
+	if (Velocity.Size() > 0.1f)
+	{
+		if (CanClimbDownLedge())
+		{
+			// 如果可以下爬，播放下爬蒙太奇
+			PlayClimbMontage(AnimMontage_ClimbToDown);
+		}
+	}
+	
 }
 
 void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
@@ -98,6 +108,12 @@ bool UCustomMovementComponent::CanClimbDownLedge() const
 	if (IsFalling())
 	{
 		// 如果角色正在下落，不允许下爬
+		return false;
+	}
+
+	if (IsClimbing())
+	{
+		// 如果角色正在攀爬，不允许下爬
 		return false;
 	}
 
@@ -338,6 +354,9 @@ void UCustomMovementComponent::SnapMovementToClimbableSurface(float DeltaTime)
 
 	// 计算角色面向攀爬表面的投影向量(投影到角色面向)
 	const FVector SnapVector = -CurrentClimbableSurfaceNormal * ProjectedCharacterToSurface.Length();
+
+	// 绘制 SnapVector
+	UKismetSystemLibrary::DrawDebugArrow(this, ComponentLocation, ComponentLocation + SnapVector, 10.f, FColor::Green, 0.1f, 1.0f);
 
 	UpdatedComponent->MoveComponent(
 		SnapVector*DeltaTime*MaxClimbSpeed,
