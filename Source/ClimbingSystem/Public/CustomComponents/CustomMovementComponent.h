@@ -34,6 +34,9 @@ public:
 	// 是否可以开始攀爬
 	bool CanStartClimbing();
 
+	// 是否可以下爬
+	bool CanClimbDownLedge() const;
+
 	FORCEINLINE FVector GetCurrentClimbableSurfaceLocation() const { return CurrentClimbableSurfaceLocation; }
 	FORCEINLINE FVector GetCurrentClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
 
@@ -111,6 +114,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	float MaxClimbAcceleration = 200.f;	// 最大攀爬加速度
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float ClimbDownWalkableSurfaceTraceOffset = 100.f;	// 攀爬下行走表面射线检测偏移
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float ClimbDownLedgeTraceOffset = 50.f;	// 攀爬下行走表面射线检测偏移
+
 	void ProcessClimbableSurfaceInfo();
 
 	// 获取攀爬旋转
@@ -135,6 +144,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	UAnimMontage* AnimMontage_ClimbToTop;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_ClimbToDown;
 
 
 	

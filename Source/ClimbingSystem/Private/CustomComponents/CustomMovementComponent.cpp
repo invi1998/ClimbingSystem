@@ -49,9 +49,11 @@ void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
 			CS_Debug::Print("Start climbing", FColor::Green);
 			PlayClimbMontage(AnimMontage_StandToWallUp);
 		}
-		else
+		else if (CanClimbDownLedge())
 		{
-			CS_Debug::Print("Can't start climbing", FColor::Red);
+			// 如果可以下爬，播放下爬蒙太奇
+			CS_Debug::Print("Start climbing down", FColor::Green);
+			PlayClimbMontage(AnimMontage_ClimbToDown);
 		}
 	}
 	else
@@ -89,6 +91,39 @@ bool UCustomMovementComponent::CanStartClimbing()
 
 	return true;
 
+}
+
+bool UCustomMovementComponent::CanClimbDownLedge() const
+{
+	if (IsFalling())
+	{
+		// 如果角色正在下落，不允许下爬
+		return false;
+	}
+
+	// 检测是否到达可下爬的地方
+
+	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+	const FVector ComponentForward = UpdatedComponent->GetForwardVector();
+	const FVector DownVector = -UpdatedComponent->GetUpVector();
+
+	const FVector WalkableSurfaceTraceStart = ComponentLocation + ComponentForward * ClimbDownWalkableSurfaceTraceOffset;
+	const FVector WalkableSurfaceTraceEnd = WalkableSurfaceTraceStart + DownVector * 100.f;
+
+	FHitResult WalkableSurfaceHitResult = DoLineTraceSingleByObject(WalkableSurfaceTraceStart, WalkableSurfaceTraceEnd, true, false);
+
+	const FVector LedgeTraceStart = WalkableSurfaceHitResult.TraceStart + ComponentForward * ClimbDownLedgeTraceOffset;
+	const FVector LedgeTraceEnd = LedgeTraceStart + DownVector * 300.f;
+
+	FHitResult LedgeTraceHitResult = DoLineTraceSingleByObject(LedgeTraceStart, LedgeTraceEnd, true, false);
+
+	if (WalkableSurfaceHitResult.bBlockingHit && !LedgeTraceHitResult.bBlockingHit)
+	{
+		// 如果检测到可下爬的地方，返回true
+		return true;
+	}
+
+	return false;
 }
 
 void UCustomMovementComponent::StartClimbing()
@@ -332,6 +367,11 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 	{
 		// 如果是上到顶端蒙太奇结束
 		SetMovementMode(MOVE_Walking);
+	}
+	else if (Montage == AnimMontage_ClimbToDown)
+	{
+		// 如果是下墙蒙太奇结束
+		StartClimbing();
 	}
 }
 
