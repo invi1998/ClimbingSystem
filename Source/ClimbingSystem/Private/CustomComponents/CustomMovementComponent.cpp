@@ -366,13 +366,13 @@ void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 	{
 		// 如果进入攀爬模式
 		bOrientRotationToMovement = false;	// 不根据移动方向旋转角色
-		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(45.0f);	// 设置胶囊体高度
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(47.0f);	// 设置胶囊体高度
 	}
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == ECustomMovementMode::MOVE_Climb)
 	{
 		// 如果离开攀爬模式
 		bOrientRotationToMovement = true;	// 根据移动方向旋转角色
-		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);	// 恢复胶囊体高度
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(94.0f);	// 恢复胶囊体高度
 
 		// 重置角色旋转，只保留Yaw旋转，Pitch和Roll重置为0，因为在攀爬模式下，角色的Pitch和Roll会因为身体紧贴墙面导致发生变化
 		const FRotator DirtyRotation = UpdatedComponent->GetComponentRotation();
