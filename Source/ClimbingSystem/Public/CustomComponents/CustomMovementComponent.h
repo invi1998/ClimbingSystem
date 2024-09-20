@@ -8,6 +8,7 @@
 
 class UAnimMontage;
 class UCharacterAnimInstance;
+class AClimbingSystemCharacter;
 
 UENUM(BlueprintType)
 namespace ECustomMovementMode
@@ -141,6 +142,9 @@ private:
 	UPROPERTY()
 	UAnimInstance* CharacterAnimInstance;
 
+	UPROPERTY()
+	AClimbingSystemCharacter* ClimbingSystemCharacter;
+
 	void PlayClimbMontage(UAnimMontage* MontageToPlay);
 
 	/**
@@ -158,5 +162,10 @@ private:
 	void TryStartVaulting();	// 尝试开始翻越
 
 	bool CanStartVaulting(FVector& OutVaultStartLocation, FVector& OutVaultLandLocation) const;	// 是否可以开始翻越，返回翻越起始位置和落地位置
-	
+
+	void SetVaultingMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const;	// 设置翻越运动扭曲目标
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_Vaulting;
+
 };

@@ -3,6 +3,7 @@
 
 #include "CustomComponents/CustomMovementComponent.h"
 
+#include "MotionWarpingComponent.h"
 #include "Character/CharacterAnimInstance.h"
 #include "ClimbingSystem/DebugHelper.h"
 #include "GameFramework/Character.h"
@@ -25,11 +26,8 @@ void UCustomMovementComponent::BeginPlay()
 		// 绑定攀爬蒙太奇淡出事件
 		CharacterAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
 	}
-	else
-	{
-		CS_Debug::Print("CharacterAnimInstance is nullptr", FColor::Red);
-	
-	}
+
+	ClimbingSystemCharacter = Cast<AClimbingSystemCharacter>(CharacterOwner);
 }
 
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -405,7 +403,7 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 			StartClimbing();
 		}
 	}
-	else if (Montage == AnimMontage_ClimbToTop)
+	else if (Montage == AnimMontage_ClimbToTop || Montage == AnimMontage_Vaulting)
 	{
 		// 如果是上到顶端蒙太奇结束
 		SetMovementMode(MOVE_Walking);
@@ -439,8 +437,14 @@ void UCustomMovementComponent::TryStartVaulting()
 	{
 		// 如果可以开始翻越
 		// Start vaulting
-		UKismetSystemLibrary::DrawDebugSphere(this, VaultStartLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
-		UKismetSystemLibrary::DrawDebugSphere(this, VaultLandLocation, 10.f, 12, FColor::Blue, 0.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugSphere(this, VaultStartLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugSphere(this, VaultLandLocation, 10.f, 12, FColor::Blue, 0.1f, 1.0f);
+
+		SetVaultingMotionWarpingTarget("VaultStartPoint", VaultStartLocation);
+		SetVaultingMotionWarpingTarget("VaultEndPoint", VaultLandLocation);
+
+		StartClimbing();
+		PlayClimbMontage(AnimMontage_Vaulting);
 	}
 }
 
@@ -470,7 +474,7 @@ bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, 
 		const FVector Start = ComponentLocation + ComponentForward * 100.f * (i+1) + UpVector * 100.f;
 		const FVector End = Start + DownVector * 100.f * (i+1);
 
-		FHitResult HitResult = DoLineTraceSingleByObject(Start, End, true, false);
+		FHitResult HitResult = DoLineTraceSingleByObject(Start, End, false, false);
 
 		if (i == 0 && HitResult.bBlockingHit)
 		{
@@ -478,7 +482,7 @@ bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, 
 			OutVaultStartLocation = HitResult.ImpactPoint;
 		}
 
-		if (i == 4 && HitResult.bBlockingHit)
+		if (i == 3 && HitResult.bBlockingHit)
 		{
 			// 如果第五次检测到阻挡，说明角色前方100位置可以作为翻越终点
 			OutVaultLandLocation = HitResult.ImpactPoint;
@@ -493,6 +497,14 @@ bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, 
 
 	return false;
 
+}
+
+void UCustomMovementComponent::SetVaultingMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const
+{
+	if (ClimbingSystemCharacter)
+	{
+		ClimbingSystemCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocation(TargetSectionName, TargetLocation);
+	}
 }
 
 void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
