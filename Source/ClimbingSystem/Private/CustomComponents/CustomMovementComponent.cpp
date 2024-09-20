@@ -39,10 +39,25 @@ void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	// 如果角色移动速度大于0.1f
 	if (Velocity.Size() > 0.1f)
 	{
+		if (CharacterAnimInstance->IsAnyMontagePlaying())
+		{
+			// 如果有动画正在播放
+			return;
+		}
+
 		if (CanClimbDownLedge())
 		{
 			// 如果可以下爬，播放下爬蒙太奇
 			PlayClimbMontage(AnimMontage_ClimbToDown);
+		}
+		else if (CanStartClimbing())
+		{
+			// Start climbing
+			PlayClimbMontage(AnimMontage_StandToWallUp);
+		}
+		else
+		{
+			TryStartVaulting();
 		}
 	}
 	
@@ -56,14 +71,16 @@ void UCustomMovementComponent::ToggleClimbingMode(bool bEnableClimb)
 		if (CanStartClimbing())
 		{
 			// Start climbing
-			CS_Debug::Print("Start climbing", FColor::Green);
 			PlayClimbMontage(AnimMontage_StandToWallUp);
 		}
 		else if (CanClimbDownLedge())
 		{
 			// 如果可以下爬，播放下爬蒙太奇
-			CS_Debug::Print("Start climbing down", FColor::Green);
 			PlayClimbMontage(AnimMontage_ClimbToDown);
+		}
+		else
+		{
+			TryStartVaulting();
 		}
 	}
 	else
@@ -84,6 +101,12 @@ bool UCustomMovementComponent::CanStartClimbing()
 	if (IsFalling())
 	{
 		// 如果角色正在下落，不允许开始攀爬
+		return false;
+	}
+
+	if (IsClimbing())
+	{
+		// 如果角色正在攀爬，不允许开始攀爬
 		return false;
 	}
 
@@ -406,6 +429,70 @@ void UCustomMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
 		
 		CharacterAnimInstance->Montage_Play(MontageToPlay);
 	}
+}
+
+void UCustomMovementComponent::TryStartVaulting()
+{
+	FVector VaultStartLocation = FVector::ZeroVector;
+	FVector VaultLandLocation = FVector::ZeroVector;
+	if (CanStartVaulting(VaultStartLocation, VaultLandLocation))
+	{
+		// 如果可以开始翻越
+		// Start vaulting
+		UKismetSystemLibrary::DrawDebugSphere(this, VaultStartLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
+		UKismetSystemLibrary::DrawDebugSphere(this, VaultLandLocation, 10.f, 12, FColor::Blue, 0.1f, 1.0f);
+	}
+}
+
+bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, FVector& OutVaultLandLocation) const
+{
+	if (IsClimbing())
+	{
+		// 如果正在攀爬，不允许翻越
+		return false;
+	}
+	if (IsFalling())
+	{
+		// 如果正在下落，不允许翻越
+		return false;
+	}
+
+	OutVaultStartLocation = FVector::ZeroVector;
+	OutVaultLandLocation = FVector::ZeroVector;
+
+	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+	const FVector ComponentForward = UpdatedComponent->GetForwardVector();
+	const FVector UpVector = UpdatedComponent->GetUpVector();
+	const FVector DownVector = -UpVector;
+
+	for (int32 i = 0; i < 5; i++)
+	{
+		const FVector Start = ComponentLocation + ComponentForward * 100.f * (i+1) + UpVector * 100.f;
+		const FVector End = Start + DownVector * 100.f * (i+1);
+
+		FHitResult HitResult = DoLineTraceSingleByObject(Start, End, true, false);
+
+		if (i == 0 && HitResult.bBlockingHit)
+		{
+			// 如果第一次检测到阻挡，说明角色前方0位置可以作为翻越起点
+			OutVaultStartLocation = HitResult.ImpactPoint;
+		}
+
+		if (i == 4 && HitResult.bBlockingHit)
+		{
+			// 如果第五次检测到阻挡，说明角色前方100位置可以作为翻越终点
+			OutVaultLandLocation = HitResult.ImpactPoint;
+		}
+	}
+
+	if (OutVaultStartLocation != FVector::ZeroVector && OutVaultLandLocation != FVector::ZeroVector)
+	{
+		// 如果检测到翻越起点和终点，返回true
+		return true;
+	}
+
+	return false;
+
 }
 
 void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)

@@ -155,6 +155,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	UAnimMontage* AnimMontage_ClimbToDown;
 
+	void TryStartVaulting();	// 尝试开始翻越
 
+	bool CanStartVaulting(FVector& OutVaultStartLocation, FVector& OutVaultLandLocation) const;	// 是否可以开始翻越，返回翻越起始位置和落地位置
 	
 };
