@@ -121,6 +121,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	float ClimbDownLedgeTraceOffset = 18.f;	// 攀爬下行走表面射线检测偏移
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float CharacterCapsuleHalfHeight = 94.f;	// 角色胶囊体高度
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	float ClimbToTopTraceDistance = 10.f;	// 攀爬到顶端射线检测距离
+
 	void ProcessClimbableSurfaceInfo();
 
 	// 获取攀爬旋转
