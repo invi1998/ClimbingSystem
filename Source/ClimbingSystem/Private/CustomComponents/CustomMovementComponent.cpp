@@ -35,7 +35,7 @@ void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// 如果角色移动速度大于0.1f
-	if (Velocity.Size() > 0.1f)
+	if (Velocity.X > 10.0f || Velocity.Y > 10.f)
 	{
 		if (CharacterAnimInstance->IsAnyMontagePlaying())
 		{
@@ -43,15 +43,15 @@ void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			return;
 		}
 
-		if (CanClimbDownLedge())
-		{
-			// 如果可以下爬，播放下爬蒙太奇
-			PlayClimbMontage(AnimMontage_ClimbToDown);
-		}
-		else if (CanStartClimbing())
+		if (CanStartClimbing())
 		{
 			// Start climbing
 			PlayClimbMontage(AnimMontage_StandToWallUp);
+		}
+		else if (CanClimbDownLedge())
+		{
+			// 如果可以下爬，播放下爬蒙太奇
+			PlayClimbMontage(AnimMontage_ClimbToDown);
 		}
 		else
 		{
@@ -392,6 +392,11 @@ FVector UCustomMovementComponent::GetUnRotatedClimbVelocity() const
 	return UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), Velocity);
 }
 
+void UCustomMovementComponent::CustomMove(const FInputActionValue& Value)
+{
+
+}
+
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
 	// 攀爬蒙太奇结束
@@ -458,6 +463,12 @@ bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, 
 	if (IsFalling())
 	{
 		// 如果正在下落，不允许翻越
+		return false;
+	}
+
+	if (TraceFromEyeHeight(100.f).bBlockingHit)
+	{
+		// 如果当前视线高度100.f位置有阻挡，不允许翻越
 		return false;
 	}
 

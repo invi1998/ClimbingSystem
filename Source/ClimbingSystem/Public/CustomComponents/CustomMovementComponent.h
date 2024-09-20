@@ -9,6 +9,7 @@
 class UAnimMontage;
 class UCharacterAnimInstance;
 class AClimbingSystemCharacter;
+struct FInputActionValue;
 
 UENUM(BlueprintType)
 namespace ECustomMovementMode
@@ -42,6 +43,8 @@ public:
 	FORCEINLINE FVector GetCurrentClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
 
 	FVector GetUnRotatedClimbVelocity() const;	// 获取未旋转的攀爬速度
+
+	void CustomMove(const FInputActionValue& Value);
 
 protected:
 	UFUNCTION()

@@ -118,6 +118,8 @@ void AClimbingSystemCharacter::Move(const FInputActionValue& Value)
 		HandleGroundMovementInput(Value);
 	}
 
+	// CustomMovementComponent->CustomMove(Value);
+
 }
 
 void AClimbingSystemCharacter::HandleGroundMovementInput(const FInputActionValue& Value)
