@@ -12,7 +12,6 @@ DECLARE_DELEGATE(FOnExitClimbState)
 class UAnimMontage;
 class UCharacterAnimInstance;
 class AClimbingSystemCharacter;
-struct FInputActionValue;
 
 UENUM(BlueprintType)
 namespace ECustomMovementMode
@@ -47,10 +46,10 @@ public:
 
 	FVector GetUnRotatedClimbVelocity() const;	// 获取未旋转的攀爬速度
 
-	void CustomMove(const FInputActionValue& Value);
-
 	FOnEnterClimbState OnEnterClimbState_Delegate;		// 进入攀爬状态委托
 	FOnExitClimbState OnExitClimbState_Delegate;		// 退出攀爬状态委托
+
+	void ClimbDash();	// 攀爬冲刺
 
 protected:
 	UFUNCTION()

@@ -392,9 +392,56 @@ FVector UCustomMovementComponent::GetUnRotatedClimbVelocity() const
 	return UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), Velocity);
 }
 
-void UCustomMovementComponent::CustomMove(const FInputActionValue& Value)
+void UCustomMovementComponent::ClimbDash()
 {
+	// 攀爬冲刺
+	if (IsClimbing())
+	{
+		// 获取最后一次输入向量，并对其进行反旋转，得到未旋转的输入向量，用于后续角色跳跃的方向判定
+		const FVector UnRotatedLastInputVector = UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), GetLastInputVector()).GetSafeNormal();
 
+		// 获取角色右向量
+		const FVector RightVector = UpdatedComponent->GetRightVector().GetSafeNormal();
+		// 获取角色上向量
+		const FVector UpVector = UpdatedComponent->GetUpVector().GetSafeNormal();
+
+		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UnRotatedLastInputVector * 150.f, 10.f, FColor::Green, 1.1f, 1.0f);
+		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + RightVector * 100.f, 10.f, FColor::Blue, 1.1f, 1.0f);
+		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UpVector * 100.f, 10.f, FColor::Yellow, 1.1f, 1.0f);
+
+		const float DotResult_Z = FVector::DotProduct(UnRotatedLastInputVector, UpVector);
+		CS_Debug::Print("DotResult_Z: " + FString::SanitizeFloat(DotResult_Z));
+
+		// const float AngleDifference = FMath::RadiansToDegrees(FMath::Acos(DotResult_Z));
+		// CS_Debug::Print("AngleDifference: " + FString::SanitizeFloat(AngleDifference));
+
+		if (DotResult_Z >= 0.9f)
+		{
+			// 如果输入向量与上向量的点积大于等于0.9f，表明角色正在向上攀爬
+			
+		}
+		else if (DotResult_Z <= -0.9f)
+		{
+			// 如果输入向量与上向量的点积小于等于-0.9f，表明角色正在向下攀爬
+		}
+		else
+		{
+			// 计算和角色右向量的点积
+			const float DotResult_X = FVector::DotProduct(UnRotatedLastInputVector, RightVector);
+			CS_Debug::Print("DotResult_X: " + FString::SanitizeFloat(DotResult_X));
+
+			if (DotResult_X >= 0.9f)
+			{
+				// 如果输入向量与右向量的点积大于等于0.9f，表明角色正在向右攀爬
+			}
+			else if (DotResult_X <= -0.9f)
+			{
+				// 如果输入向量与右向量的点积小于等于-0.9f，表明角色正在向左攀爬
+			}
+		}
+
+		
+	}
 }
 
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
