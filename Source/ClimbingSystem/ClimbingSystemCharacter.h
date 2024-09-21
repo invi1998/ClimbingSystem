@@ -38,14 +38,8 @@ public:
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 
 
-	void OnPlayerEnterClimbState();	// 玩家进入攀爬状态
-
-	void OnPlayerExitClimbState();	// 玩家退出攀爬状态
 
 protected:
-
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
 
 	/* 处理地面移动输入 */
 	void HandleGroundMovementInput(const FInputActionValue& Value);
@@ -68,6 +62,14 @@ protected:
 
 private:
 
+	void OnPlayerEnterClimbState();	// 玩家进入攀爬状态
+
+	void OnPlayerExitClimbState();	// 玩家退出攀爬状态
+
+	void AddInputMappingContext(UInputMappingContext* MappingContext, int32 InPriority);		// 添加输入映射上下文，优先级
+
+	void RemoveInputMappingContext(UInputMappingContext* MappingContext);						// 移除输入映射上下文
+
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -84,6 +86,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
+	/* Climbing MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* ClimbingMappingContext;
+
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
@@ -91,6 +97,10 @@ private:
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
+
+	/* Climb Move Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ClimbMoveAction;
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
