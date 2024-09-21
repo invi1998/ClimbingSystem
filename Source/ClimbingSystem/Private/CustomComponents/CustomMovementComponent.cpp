@@ -397,19 +397,21 @@ void UCustomMovementComponent::ClimbDash()
 	// 攀爬冲刺
 	if (IsClimbing())
 	{
+		const FVector LastInputVector = GetLastInputVector().GetSafeNormal();
 		// 获取最后一次输入向量，并对其进行反旋转，得到未旋转的输入向量，用于后续角色跳跃的方向判定
-		const FVector UnRotatedLastInputVector = UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), GetLastInputVector()).GetSafeNormal();
+		// const FVector UnRotatedLastInputVector = UKismetMathLibrary::Quat_UnrotateVector(UpdatedComponent->GetComponentQuat(), LastInputVector).GetSafeNormal();
 
 		// 获取角色右向量
 		const FVector RightVector = UpdatedComponent->GetRightVector().GetSafeNormal();
 		// 获取角色上向量
 		const FVector UpVector = UpdatedComponent->GetUpVector().GetSafeNormal();
-
-		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UnRotatedLastInputVector * 150.f, 10.f, FColor::Green, 1.1f, 1.0f);
+		
+		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + LastInputVector * 200, 10.f, FColor::Red, 1.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UnRotatedLastInputVector * 150.f, 10.f, FColor::Green, 1.1f, 1.0f);
 		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + RightVector * 100.f, 10.f, FColor::Blue, 1.1f, 1.0f);
 		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UpVector * 100.f, 10.f, FColor::Yellow, 1.1f, 1.0f);
 
-		const float DotResult_Z = FVector::DotProduct(UnRotatedLastInputVector, UpVector);
+		const float DotResult_Z = FVector::DotProduct(LastInputVector, UpVector);
 		CS_Debug::Print("DotResult_Z: " + FString::SanitizeFloat(DotResult_Z));
 
 		// const float AngleDifference = FMath::RadiansToDegrees(FMath::Acos(DotResult_Z));
@@ -428,7 +430,7 @@ void UCustomMovementComponent::ClimbDash()
 		else
 		{
 			// 计算和角色右向量的点积
-			const float DotResult_X = FVector::DotProduct(UnRotatedLastInputVector, RightVector);
+			const float DotResult_X = FVector::DotProduct(LastInputVector, RightVector);
 			CS_Debug::Print("DotResult_X: " + FString::SanitizeFloat(DotResult_X));
 
 			if (DotResult_X >= 0.9f)
