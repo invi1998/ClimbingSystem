@@ -59,6 +59,8 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	// Climb Dash
+	void ClimbDash(const FInputActionValue& Value);
 
 private:
 
@@ -110,8 +112,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ClimbingAction;
 
+	/** Climbing Dash 攀爬冲刺 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ClimbDashAction;		// 攀爬冲刺
+
 	/* MotionWarpingComponent */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UMotionWarpingComponent* MotionWarpingComponent;
+
 };
 

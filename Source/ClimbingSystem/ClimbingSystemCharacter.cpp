@@ -78,6 +78,16 @@ void AClimbingSystemCharacter::BeginPlay()
 
 }
 
+void AClimbingSystemCharacter::ClimbDash(const FInputActionValue& Value)
+{
+	/*if (!CustomMovementComponent) return;
+
+	if (CustomMovementComponent->IsClimbing())
+	{
+		CustomMovementComponent->ClimbDash();
+	}*/
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -101,6 +111,9 @@ void AClimbingSystemCharacter::SetupPlayerInputComponent(UInputComponent* Player
 
 		// Climbing
 		EnhancedInputComponent->BindAction(ClimbingAction, ETriggerEvent::Started, this, &AClimbingSystemCharacter::Climbing);
+
+		// Climbing Dash
+		EnhancedInputComponent->BindAction(ClimbingAction, ETriggerEvent::Started, this, &AClimbingSystemCharacter::ClimbDash);
 	}
 	else
 	{
