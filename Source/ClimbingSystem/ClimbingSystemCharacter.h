@@ -36,7 +36,11 @@ public:
 	FORCEINLINE UCustomMovementComponent* GetCustomMovementComponent() const { return CustomMovementComponent; }
 
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
-	
+
+
+	void OnPlayerEnterClimbState();	// 玩家进入攀爬状态
+
+	void OnPlayerExitClimbState();	// 玩家退出攀爬状态
 
 protected:
 

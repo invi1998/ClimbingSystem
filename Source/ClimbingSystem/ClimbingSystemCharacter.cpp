@@ -76,6 +76,13 @@ void AClimbingSystemCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	if (CustomMovementComponent)
+	{
+		CustomMovementComponent->OnEnterClimbState_Delegate.BindUObject(this, &AClimbingSystemCharacter::OnPlayerEnterClimbState);
+		CustomMovementComponent->OnExitClimbState_Delegate.BindUObject(this, &AClimbingSystemCharacter::OnPlayerExitClimbState);
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,6 +109,22 @@ void AClimbingSystemCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	else
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
+}
+
+void AClimbingSystemCharacter::OnPlayerEnterClimbState()
+{
+	if (CustomMovementComponent)
+	{
+		CustomMovementComponent->ToggleClimbingMode(true);
+	}
+}
+
+void AClimbingSystemCharacter::OnPlayerExitClimbState()
+{
+	if (CustomMovementComponent)
+	{
+		CustomMovementComponent->ToggleClimbingMode(false);
 	}
 }
 

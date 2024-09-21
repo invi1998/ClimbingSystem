@@ -526,6 +526,8 @@ void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 		// 如果进入攀爬模式
 		bOrientRotationToMovement = false;	// 不根据移动方向旋转角色
 		CharacterOwner->GetCapsuleComponent()->SetCapsuleHalfHeight(CharacterCapsuleHalfHeight/2.f);	// 设置胶囊体高度
+
+		OnEnterClimbState_Delegate.ExecuteIfBound();	// 触发进入攀爬状态委托
 	}
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == ECustomMovementMode::MOVE_Climb)
 	{
@@ -539,6 +541,8 @@ void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovem
 		UpdatedComponent->SetRelativeRotation(CleanRotation);		// 设置角色旋转
 
 		StopMovementImmediately();		// 停止移动
+
+		OnExitClimbState_Delegate.ExecuteIfBound();	// 触发退出攀爬状态委托
 	}
 
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);

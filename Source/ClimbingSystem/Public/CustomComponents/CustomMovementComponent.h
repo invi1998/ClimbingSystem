@@ -6,6 +6,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CustomMovementComponent.generated.h"
 
+DECLARE_DELEGATE(FOnEnterClimbState)
+DECLARE_DELEGATE(FOnExitClimbState)
+
 class UAnimMontage;
 class UCharacterAnimInstance;
 class AClimbingSystemCharacter;
@@ -45,6 +48,9 @@ public:
 	FVector GetUnRotatedClimbVelocity() const;	// 获取未旋转的攀爬速度
 
 	void CustomMove(const FInputActionValue& Value);
+
+	FOnEnterClimbState OnEnterClimbState_Delegate;		// 进入攀爬状态委托
+	FOnExitClimbState OnExitClimbState_Delegate;		// 退出攀爬状态委托
 
 protected:
 	UFUNCTION()
