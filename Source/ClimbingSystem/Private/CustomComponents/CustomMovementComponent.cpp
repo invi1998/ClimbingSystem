@@ -418,7 +418,7 @@ void UCustomMovementComponent::ClimbDash()
 		if (DotResult_Z >= 0.9f)
 		{
 			// 如果输入向量与上向量的点积大于等于0.9f，表明角色正在向上攀爬
-			
+			HandleClimbDashUp();
 		}
 		else if (DotResult_Z <= -0.9f)
 		{
@@ -447,7 +447,7 @@ void UCustomMovementComponent::ClimbDash()
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
 	// 攀爬蒙太奇结束
-	if (Montage == AnimMontage_StandToWallUp || Montage == AnimMontage_ClimbToDown)
+	if (Montage == AnimMontage_StandToWallUp || Montage == AnimMontage_ClimbToDown || Montage == AnimMontage_ClimbDashUp)
 	{
 		if (!bBInterrupted)
 		{
@@ -492,8 +492,8 @@ void UCustomMovementComponent::TryStartVaulting()
 		// UKismetSystemLibrary::DrawDebugSphere(this, VaultStartLocation, 10.f, 12, FColor::Green, 0.1f, 1.0f);
 		// UKismetSystemLibrary::DrawDebugSphere(this, VaultLandLocation, 10.f, 12, FColor::Blue, 0.1f, 1.0f);
 
-		SetVaultingMotionWarpingTarget("VaultStartPoint", VaultStartLocation);
-		SetVaultingMotionWarpingTarget("VaultEndPoint", VaultLandLocation);
+		SetMotionWarpingTarget("VaultStartPoint", VaultStartLocation);
+		SetMotionWarpingTarget("VaultEndPoint", VaultLandLocation);
 
 		StartClimbing();
 		PlayClimbMontage(AnimMontage_Vaulting);
@@ -557,12 +557,45 @@ bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartLocation, 
 
 }
 
-void UCustomMovementComponent::SetVaultingMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const
+void UCustomMovementComponent::SetMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const
 {
 	if (ClimbingSystemCharacter)
 	{
 		ClimbingSystemCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocation(TargetSectionName, TargetLocation);
 	}
+}
+
+void UCustomMovementComponent::HandleClimbDashUp()
+{
+	FVector TargetPoint = FVector::ZeroVector;
+	if (CheckClimbDashUp(TargetPoint))
+	{
+		SetMotionWarpingTarget("DashUpTargetPoint", TargetPoint);
+		// 如果可以攀爬冲刺上
+		PlayClimbMontage(AnimMontage_ClimbDashUp);
+	}
+}
+
+bool UCustomMovementComponent::CheckClimbDashUp(FVector& OutTargetPoint)
+{
+	OutTargetPoint = FVector::ZeroVector;
+
+	if (IsFalling())
+	{
+		// 如果正在下落，不允许攀爬冲刺上
+		return false;
+	}
+
+	FHitResult HitResult = TraceFromEyeHeight(100.f, -30.f, true, true);
+	FHitResult SaftyLedgeHitResult = TraceFromEyeHeight(100.f, 150.f, true, true);
+	if (HitResult.bBlockingHit && SaftyLedgeHitResult.bBlockingHit)
+	{
+		// 如果检测到阻挡，并且检测到安全的突出物，允许攀爬冲刺上
+		OutTargetPoint = HitResult.ImpactPoint;
+		return true;
+	}
+
+	return false;
 }
 
 void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -653,7 +686,7 @@ bool UCustomMovementComponent::TraceClimbableSurface()
 	return !ClimbableSurfaceTraceHits.IsEmpty();
 }
 
-FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, float TraceStartOffset) const
+FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, float TraceStartOffset, bool bShowDebug, bool bDrawPersistantShapes) const
 {
 	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
 	const FVector EyeHeightOffset = UpdatedComponent->GetUpVector() * (CharacterOwner->BaseEyeHeight + TraceStartOffset);
@@ -661,7 +694,7 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 	const FVector Start = ComponentLocation + EyeHeightOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
 
-	return DoLineTraceSingleByObject(Start, End, false, false);
+	return DoLineTraceSingleByObject(Start, End, bShowDebug, bDrawPersistantShapes);
 }
 
 TArray<FHitResult> UCustomMovementComponent::DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes) const

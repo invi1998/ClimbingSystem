@@ -95,7 +95,7 @@ private:
 	bool TraceClimbableSurface();
 
 	// 从眼睛高度开始跟踪
-	FHitResult TraceFromEyeHeight(float TraceDistance, float TraceStartOffset = 0.f) const;
+	FHitResult TraceFromEyeHeight(float TraceDistance, float TraceStartOffset = 0.f, bool bShowDebug = false, bool bDrawPersistantShapes = false) const;
 
 	// 胶囊体射线检测
 	TArray<FHitResult> DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes = false) const;
@@ -171,9 +171,16 @@ private:
 
 	bool CanStartVaulting(FVector& OutVaultStartLocation, FVector& OutVaultLandLocation) const;	// 是否可以开始翻越，返回翻越起始位置和落地位置
 
-	void SetVaultingMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const;	// 设置翻越运动扭曲目标
+	void SetMotionWarpingTarget(const FName& TargetSectionName, const FVector& TargetLocation) const;	// 设置翻越运动扭曲目标
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	UAnimMontage* AnimMontage_Vaulting;
+
+	void HandleClimbDashUp();	// 处理攀爬冲刺上
+
+	bool CheckClimbDashUp(FVector& OutTargetPoint);	// 检查攀爬冲刺上
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_ClimbDashUp;
 
 };
