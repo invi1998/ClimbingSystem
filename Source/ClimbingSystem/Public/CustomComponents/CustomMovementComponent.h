@@ -97,6 +97,8 @@ private:
 	// 从眼睛高度开始跟踪
 	FHitResult TraceFromEyeHeight(float TraceDistance, float TraceStartOffset = 0.f, bool bShowDebug = false, bool bDrawPersistantShapes = false) const;
 
+	FHitResult TraceFromEyeHeight_V(float TraceDistance, float TraceStartOffset = 0.f, bool bShowDebug = false, bool bDrawPersistantShapes = false) const;
+
 	// 胶囊体射线检测
 	TArray<FHitResult> DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebug, bool bDrawPersistantShapes = false) const;
 
@@ -182,5 +184,23 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
 	UAnimMontage* AnimMontage_ClimbDashUp;
+
+	void HandleClimbDashDown();	// 处理攀爬冲刺下
+	bool CheckClimbDashDown(FVector& OutTargetPoint);	// 检查攀爬冲刺下
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_ClimbDashDown;
+
+	void HandleClimbDashLeft();	// 处理攀爬冲刺左
+	bool CheckClimbDashLeft(FVector& OutTargetPoint);	// 检查攀爬冲刺左
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_ClimbDashLeft;
+
+	void HandleClimbDashRight();	// 处理攀爬冲刺右
+	bool CheckClimbDashRight(FVector& OutTargetPoint);	// 检查攀爬冲刺右
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Character Movement: Climbing", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* AnimMontage_ClimbDashRight;
 
 };

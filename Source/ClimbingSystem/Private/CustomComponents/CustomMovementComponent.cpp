@@ -423,6 +423,7 @@ void UCustomMovementComponent::ClimbDash()
 		else if (DotResult_Z <= -0.9f)
 		{
 			// 如果输入向量与上向量的点积小于等于-0.9f，表明角色正在向下攀爬
+			HandleClimbDashDown();
 		}
 		else
 		{
@@ -433,10 +434,12 @@ void UCustomMovementComponent::ClimbDash()
 			if (DotResult_X >= 0.9f)
 			{
 				// 如果输入向量与右向量的点积大于等于0.9f，表明角色正在向右攀爬
+				HandleClimbDashRight();
 			}
 			else if (DotResult_X <= -0.9f)
 			{
 				// 如果输入向量与右向量的点积小于等于-0.9f，表明角色正在向左攀爬
+				HandleClimbDashLeft();
 			}
 		}
 
@@ -447,7 +450,12 @@ void UCustomMovementComponent::ClimbDash()
 void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bBInterrupted)
 {
 	// 攀爬蒙太奇结束
-	if (Montage == AnimMontage_StandToWallUp || Montage == AnimMontage_ClimbToDown || Montage == AnimMontage_ClimbDashUp)
+	if (Montage == AnimMontage_StandToWallUp 
+		|| Montage == AnimMontage_ClimbToDown 
+		|| Montage == AnimMontage_ClimbDashUp
+		|| Montage == AnimMontage_ClimbDashDown
+		|| Montage == AnimMontage_ClimbDashLeft
+		|| Montage == AnimMontage_ClimbDashRight)
 	{
 		if (!bBInterrupted)
 		{
@@ -598,6 +606,102 @@ bool UCustomMovementComponent::CheckClimbDashUp(FVector& OutTargetPoint)
 	return false;
 }
 
+void UCustomMovementComponent::HandleClimbDashDown()
+{
+	FVector TargetPoint = FVector::ZeroVector;
+	if (CheckClimbDashDown(TargetPoint))
+	{
+		SetMotionWarpingTarget("DashDownTargetPoint", TargetPoint);
+		// 如果可以攀爬冲刺下
+		PlayClimbMontage(AnimMontage_ClimbDashDown);
+	}
+}
+
+bool UCustomMovementComponent::CheckClimbDashDown(FVector& OutTargetPoint)
+{
+	OutTargetPoint = FVector::ZeroVector;
+
+	if (IsFalling())
+	{
+		// 如果正在下落，不允许攀爬冲刺下
+		return false;
+	}
+
+	FHitResult HitResult = TraceFromEyeHeight(100.f, -300.f, true, true);
+	if (HitResult.bBlockingHit)
+	{
+		// 如果检测到阻挡，允许攀爬冲刺下
+		OutTargetPoint = HitResult.ImpactPoint;
+		return true;
+	}
+
+	return false;
+}
+
+void UCustomMovementComponent::HandleClimbDashLeft()
+{
+	FVector TargetPoint = FVector::ZeroVector;
+	if (CheckClimbDashLeft(TargetPoint))
+	{
+		SetMotionWarpingTarget("DashLeftTargetPoint", TargetPoint);
+		// 如果可以攀爬冲刺左
+		PlayClimbMontage(AnimMontage_ClimbDashLeft);
+	}
+}
+
+bool UCustomMovementComponent::CheckClimbDashLeft(FVector& OutTargetPoint)
+{
+	OutTargetPoint = FVector::ZeroVector;
+
+	if (IsFalling())
+	{
+		// 如果正在下落，不允许攀爬冲刺左
+		return false;
+	}
+
+	FHitResult HitResult = TraceFromEyeHeight_V(100.f, -200.f, true, true);
+	if (HitResult.bBlockingHit)
+	{
+		// 如果检测到阻挡，允许攀爬冲刺左
+		OutTargetPoint = HitResult.ImpactPoint;
+		return true;
+	}
+
+	return false;
+}
+
+void UCustomMovementComponent::HandleClimbDashRight()
+{
+	FVector TargetPoint = FVector::ZeroVector;
+	if (CheckClimbDashRight(TargetPoint))
+	{
+		SetMotionWarpingTarget("DashRightTargetPoint", TargetPoint);
+		// 如果可以攀爬冲刺右
+		PlayClimbMontage(AnimMontage_ClimbDashRight);
+	}
+}
+
+bool UCustomMovementComponent::CheckClimbDashRight(FVector& OutTargetPoint)
+{
+	OutTargetPoint = FVector::ZeroVector;
+
+	if (IsFalling())
+	{
+		// 如果正在下落，不允许攀爬冲刺右
+		return false;
+	}
+
+	FHitResult HitResult = TraceFromEyeHeight_V(100.f, 200.f, true, true);
+	if (HitResult.bBlockingHit)
+	{
+		// 如果检测到阻挡，允许攀爬冲刺右
+		OutTargetPoint = HitResult.ImpactPoint;
+		return true;
+	}
+
+	return false;
+}
+
 void UCustomMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
 
@@ -690,6 +794,17 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 {
 	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
 	const FVector EyeHeightOffset = UpdatedComponent->GetUpVector() * (CharacterOwner->BaseEyeHeight + TraceStartOffset);
+
+	const FVector Start = ComponentLocation + EyeHeightOffset;
+	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
+
+	return DoLineTraceSingleByObject(Start, End, bShowDebug, bDrawPersistantShapes);
+}
+
+FHitResult UCustomMovementComponent::TraceFromEyeHeight_V(float TraceDistance, float TraceStartOffset, bool bShowDebug, bool bDrawPersistantShapes) const
+{
+	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+	const FVector EyeHeightOffset = UpdatedComponent->GetRightVector() * (CharacterOwner->BaseEyeHeight + TraceStartOffset);
 
 	const FVector Start = ComponentLocation + EyeHeightOffset;
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
