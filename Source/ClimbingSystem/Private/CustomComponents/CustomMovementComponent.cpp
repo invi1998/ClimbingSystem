@@ -406,13 +406,13 @@ void UCustomMovementComponent::ClimbDash()
 		// 获取角色上向量
 		const FVector UpVector = UpdatedComponent->GetUpVector().GetSafeNormal();
 		
-		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + LastInputVector * 200, 10.f, FColor::Red, 1.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + LastInputVector * 200, 10.f, FColor::Red, 1.1f, 1.0f);
 		// UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UnRotatedLastInputVector * 150.f, 10.f, FColor::Green, 1.1f, 1.0f);
-		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + RightVector * 100.f, 10.f, FColor::Blue, 1.1f, 1.0f);
-		UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UpVector * 100.f, 10.f, FColor::Yellow, 1.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + RightVector * 100.f, 10.f, FColor::Blue, 1.1f, 1.0f);
+		// UKismetSystemLibrary::DrawDebugArrow(this, UpdatedComponent->GetComponentLocation(), UpdatedComponent->GetComponentLocation() + UpVector * 100.f, 10.f, FColor::Yellow, 1.1f, 1.0f);
 
 		const float DotResult_Z = FVector::DotProduct(LastInputVector, UpVector);
-		CS_Debug::Print("DotResult_Z: " + FString::SanitizeFloat(DotResult_Z));
+		// CS_Debug::Print("DotResult_Z: " + FString::SanitizeFloat(DotResult_Z));
 
 		// const float AngleDifference = FMath::RadiansToDegrees(FMath::Acos(DotResult_Z));
 		// CS_Debug::Print("AngleDifference: " + FString::SanitizeFloat(AngleDifference));
@@ -431,7 +431,7 @@ void UCustomMovementComponent::ClimbDash()
 		{
 			// 计算和角色右向量的点积
 			const float DotResult_X = FVector::DotProduct(LastInputVector, RightVector);
-			CS_Debug::Print("DotResult_X: " + FString::SanitizeFloat(DotResult_X));
+			// CS_Debug::Print("DotResult_X: " + FString::SanitizeFloat(DotResult_X));
 
 			if (DotResult_X >= 0.9f)
 			{
@@ -596,8 +596,8 @@ bool UCustomMovementComponent::CheckClimbDashUp(FVector& OutTargetPoint)
 		return false;
 	}
 
-	FHitResult HitResult = TraceFromEyeHeight(100.f, -30.f, true, true);
-	FHitResult SaftyLedgeHitResult = TraceFromEyeHeight(100.f, 150.f, true, true);
+	FHitResult HitResult = TraceFromEyeHeight(100.f, -30.f, false, true);
+	FHitResult SaftyLedgeHitResult = TraceFromEyeHeight(100.f, 150.f, false, true);
 	if (HitResult.bBlockingHit && SaftyLedgeHitResult.bBlockingHit)
 	{
 		// 如果检测到阻挡，并且检测到安全的突出物，允许攀爬冲刺上
@@ -629,7 +629,7 @@ bool UCustomMovementComponent::CheckClimbDashDown(FVector& OutTargetPoint)
 		return false;
 	}
 
-	FHitResult HitResult = TraceFromEyeHeight(100.f, -300.f, true, true);
+	FHitResult HitResult = TraceFromEyeHeight(100.f, -300.f, false, true);
 	if (HitResult.bBlockingHit)
 	{
 		// 如果检测到阻挡，允许攀爬冲刺下
@@ -661,7 +661,7 @@ bool UCustomMovementComponent::CheckClimbDashLeft(FVector& OutTargetPoint)
 		return false;
 	}
 
-	FHitResult HitResult = TraceFromEyeHeight_V(100.f, -200.f, true, true);
+	FHitResult HitResult = TraceFromEyeHeight_V(100.f, -200.f, false, true);
 	if (HitResult.bBlockingHit)
 	{
 		// 如果检测到阻挡，允许攀爬冲刺左
@@ -693,7 +693,7 @@ bool UCustomMovementComponent::CheckClimbDashRight(FVector& OutTargetPoint)
 		return false;
 	}
 
-	FHitResult HitResult = TraceFromEyeHeight_V(100.f, 200.f, true, true);
+	FHitResult HitResult = TraceFromEyeHeight_V(100.f, 200.f, false, true);
 	if (HitResult.bBlockingHit)
 	{
 		// 如果检测到阻挡，允许攀爬冲刺右
